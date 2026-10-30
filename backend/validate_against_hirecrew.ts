@@ -73,7 +73,7 @@ const manifestInput = {
   },
   source: {
     repository: "https://github.com/Swapnil-Biswas/Aegis",
-    commit: "f8ecd0d9521ecdb1c90e59f7df2da5f84a0f19bd"
+    commit: "7260efded3c46c7b6c35b3f636992550cfccca2e"
   }
 };
 
