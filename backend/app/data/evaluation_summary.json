@@ -1,0 +1,45 @@
+{
+  "evaluated_on": "2026-10-31",
+  "dataset": "Stratified 50% held-out split of a public sample: MAGE test split (yaful/MAGE) + RAID chat-model generations without attacks (liamdugan/raid).",
+  "n_total": 796,
+  "n_test": 398,
+  "n_test_ai": 169,
+  "n_test_human": 229,
+  "tiers": {
+    "full": {
+      "auroc": 0.9874,
+      "accuracy_at_0_5": 0.9497,
+      "false_positive_rate_at_0_5": 0.0524,
+      "brier_score": 0.0357,
+      "expected_calibration_error": 0.0479
+    },
+    "no_classifier": {
+      "auroc": 0.8999,
+      "accuracy_at_0_5": 0.8568,
+      "false_positive_rate_at_0_5": 0.083,
+      "brier_score": 0.1173,
+      "expected_calibration_error": 0.1173
+    },
+    "heuristic_only": {
+      "auroc": 0.781,
+      "accuracy_at_0_5": 0.7261,
+      "false_positive_rate_at_0_5": 0.1572,
+      "brier_score": 0.1893,
+      "expected_calibration_error": 0.0634
+    }
+  },
+  "single_module_auroc": {
+    "statistical_linguistics": 0.7219,
+    "stylometric_fingerprinting": 0.7237,
+    "neural_classifier": 0.9877,
+    "lm_perplexity": 0.8869,
+    "semantic_discourse": 0.5142,
+    "pattern_analysis": 0.6107,
+    "discontinuity_analysis": 0.5156
+  },
+  "caveats": [
+    "The default neural classifier's training data is not fully documented and may overlap with these public corpora; treat the 'full' tier numbers as optimistic.",
+    "Adversarially paraphrased or heavily human-edited AI text was not part of this evaluation.",
+    "English only."
+  ]
+}

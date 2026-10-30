@@ -33,7 +33,7 @@ All 7 independent analytical layers are fully operational:
 
 ### Existing Ensemble & Calibration
 - Calibrated Bayesian/Logistic fusion with missing-module graceful fallback.
-- Platt & Temperature scaling achieving Expected Calibration Error (ECE) = $0.0638$ ($6.38\%$) and Brier score = $0.1885$.
+- *(Superseded in v1.1: fusion is now a fitted logistic stack; see FORENSIC_VALIDATION.md for measured metrics.)*
 - 3 Operating Threshold Profiles: High-Precision (FPR $< 1\%$), Balanced, Exploratory Screening.
 - Strict non-negotiable rules: Inconclusive verdict on high inter-module discordance; Insufficient Evidence verdict on text under 60 words.
 

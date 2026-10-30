@@ -129,6 +129,27 @@ class TestHireCrewSellerApi(unittest.TestCase):
         self.assertEqual(res2.status_code, 409)
 
 
+class TestBriefRouting(unittest.TestCase):
+    def test_research_brief_gets_scope_notice(self):
+        """Non-detection briefs are declined honestly, never answered from canned text."""
+        from app.hirecrew.brief_parser import BriefParser
+        from app.hirecrew.worker import _process_brief
+        brief = "As of today, identify the current Node.js Active LTS major release and its codename."
+        parsed = BriefParser.extract_analysis_payload(brief)
+        self.assertFalse(parsed["is_detection_request"])
+        report, sources = _process_brief(parsed, brief, "2026-01-01 00:00:00 UTC")
+        self.assertIn("Scope Notice", report)
+        self.assertNotIn("Jod", report)
+        self.assertTrue(sources)
+
+    def test_detection_brief_extracts_text(self):
+        from app.hirecrew.brief_parser import BriefParser
+        sample = "The quick brown fox jumps over the lazy dog. " * 10
+        parsed = BriefParser.extract_analysis_payload(f"Analyze the following paper for AI authorship: {sample}")
+        self.assertTrue(parsed["is_detection_request"])
+        self.assertTrue(parsed["text"].startswith("The quick brown fox"))
+
+
 if __name__ == "__main__":
     unittest.main()
 

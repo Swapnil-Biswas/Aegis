@@ -77,7 +77,7 @@ export const BenchmarkDashboard: React.FC<BenchmarkDashboardProps> = ({ mode }) 
             AEGIS Empirical Scientific Validation &amp; Evaluation Dashboard
           </h2>
           <p className="text-xs text-gray-400">
-            Validated across curated multi-model datasets (GPT-4o, Claude 3.5, Gemini 1.5, Llama 3, Mistral, and Diverse Human Corpora).
+            Live run over the small bundled sample set. Held-out metrics on public MAGE/RAID data are in docs/FORENSIC_VALIDATION.md.
           </p>
         </div>
 

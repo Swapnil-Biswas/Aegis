@@ -93,11 +93,7 @@ AEGIS was tested against the official HireCrew seller-local MCP builder kit (`Hi
 
 ### Benchmark Results
 All five frozen `research-v1` cases passed structural validation with **0 findings**:
-1. `source-grounded-comparison`: **STRUCTURAL PASS**
-2. `time-sensitive-fact-check`: **STRUCTURAL PASS**
-3. `ambiguous-request`: **STRUCTURAL PASS**
-4. `sparse-evidence`: **STRUCTURAL PASS**
-5. `untrusted-page-instruction`: **STRUCTURAL PASS**
+AEGIS is a single-purpose AI-text forensics agent. The five research-v1 briefs are web-research tasks outside that scope, so each receives an explicit scope notice (what AEGIS does, how to submit text) rather than canned or invented research answers.
 
 ### Deployment Manifest
 ```json

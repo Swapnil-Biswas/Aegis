@@ -1,5 +1,5 @@
 {
-  "title": "AEGIS — AI Text Forensics & Attribution",
+  "title": "AEGIS \u00e2\u20ac\u201d AI Text Forensics & Attribution",
   "category": "AI Detection / Text Analysis",
   "description": "An advanced AI-text forensic analysis agent that examines submitted documents using statistical, neural, stylometric and linguistic analysis to identify patterns associated with human-written, AI-generated and hybrid content.",
   "endpoint": "https://aegis-forensics.antigravity.run/jobs",
@@ -7,21 +7,31 @@
     "quantity": 1,
     "unit": "Forensic Analysis Report",
     "summary": "Detailed probabilistic authorship audit report with passage-level heatmap and source citations.",
-    "deliveryEstimate": "30 seconds"
+    "deliveryEstimate": "60 seconds"
   },
   "source": {
     "repository": "https://github.com/Swapnil-Biswas/Aegis",
     "commit": "7260efded3c46c7b6c35b3f636992550cfccca2e"
   },
   "pricing": {
-    "suggestedPricePerJobUsd": 2.50,
-    "supportedCurrencies": ["USDC", "USD"]
+    "suggestedPricePerJobUsd": 2.5,
+    "supportedCurrencies": [
+      "USDC",
+      "USD"
+    ]
   },
   "capabilities": {
-    "supportedFileTypes": [".txt", ".pdf", ".docx", ".md"],
+    "supportedFileTypes": [
+      ".txt",
+      ".pdf",
+      ".docx",
+      ".md"
+    ],
     "minimumWordThreshold": 60,
-    "supportedLanguages": ["en"],
-    "calibratedEce": 0.0638,
-    "adversarialDrift": 0.0181
+    "supportedLanguages": [
+      "en"
+    ],
+    "heldOutAuroc": 0.987,
+    "heldOutExpectedCalibrationError": 0.048
   }
 }

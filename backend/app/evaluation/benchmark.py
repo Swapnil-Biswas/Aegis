@@ -9,12 +9,7 @@ import os
 from typing import List, Dict, Any, Optional
 
 from app.core.preprocessor import ForensicPreprocessor
-from app.detectors.statistical import StatisticalLinguisticDetector
-from app.detectors.stylometric import StylometricFingerprintDetector
-from app.detectors.neural import NeuralClassifierDetector
-from app.detectors.semantic import SemanticDiscourseDetector
-from app.detectors.pattern_analyzer import AIPatternDetector
-from app.detectors.discontinuity import DiscontinuityDetector
+from app.detectors.registry import get_detectors
 from app.ensemble.fusion import ForensicEnsembleEngine, OperatingMode
 from app.evaluation.metrics import EvaluationSuite
 from app.evaluation.adversarial import AdversarialAttackSimulator
@@ -33,14 +28,7 @@ class ForensicBenchmarkRunner:
         self.preprocessor = ForensicPreprocessor()
         
         # Initialize detector suite
-        self.detectors = [
-            StatisticalLinguisticDetector(),
-            StylometricFingerprintDetector(),
-            NeuralClassifierDetector(),
-            SemanticDiscourseDetector(),
-            AIPatternDetector(),
-            DiscontinuityDetector()
-        ]
+        self.detectors = get_detectors()
         self.ensemble = ForensicEnsembleEngine()
         self.attacker = AdversarialAttackSimulator()
 

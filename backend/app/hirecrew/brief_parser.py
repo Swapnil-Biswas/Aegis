@@ -30,11 +30,11 @@ class BriefParser:
 
         cleaned = brief.strip()
 
-        # Check for benchmark case triggers or standard instructions
-        # e.g., "Analyze the following text for AI generation: [text]"
+        # Standard instructions put the sample after a colon, e.g.
+        # "Analyze the following text for AI generation: [text]"
         patterns = [
-            r"(?:analyze|check|evaluate|inspect|detect)\s+(?:the\s+following\s+)?(?:text|document|content|sample)?:\s*(.+)$",
-            r"(?:text|sample|document|content):\s*(.+)$"
+            r"(?:analyze|check|evaluate|inspect|detect|audit|review|assess|examine)\b[^:\n]{0,200}:\s*(.+)$",
+            r"(?:text|sample|document|content|essay|paper|passage)\s*:\s*(.+)$"
         ]
 
         extracted_text = cleaned
@@ -43,6 +43,17 @@ class BriefParser:
             if match and len(match.group(1).strip()) > 20:
                 extracted_text = match.group(1).strip()
                 break
+
+        # Only run detection when the buyer actually asks for authorship analysis.
+        # Research questions, recommendations, etc. are out of scope and must not be
+        # "analyzed" as if the question itself were the evidence.
+        is_detection_request = bool(re.search(
+            r"\b(?:ai[- ]?(?:generated|generation|written|authored|authorship|detect\w*|text|content|writing)"
+            r"|(?:written|generated|authored|wrote|produced)\s+(?:\w+\s+){0,3}(?:ai|llm|chatgpt|gpt\S*|claude|gemini|machine|a\s+bot)"
+            r"|human[- ]?(?:written|authored)|authorship|machine[- ]?(?:generated|written)|synthetic\s+text"
+            r"|forensic|detect\w*\s+(?:ai|llm|machine))\b",
+            cleaned[:600], re.IGNORECASE
+        ))
 
         # Check for requested threshold modes in brief
         mode = "balanced"
@@ -54,6 +65,7 @@ class BriefParser:
         return {
             "text": extracted_text,
             "has_text": len(extracted_text) >= 10,
+            "is_detection_request": is_detection_request,
             "mode": mode,
             "raw_brief": cleaned
         }

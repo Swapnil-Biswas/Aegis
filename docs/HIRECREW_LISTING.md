@@ -14,7 +14,7 @@ AEGIS is an enterprise-grade computational linguistics and text forensics engine
 
 1. **Statistical Linguistics**: Measures sentence burstiness ($B = \sigma / \mu$), Shannon entropy, length-normalized lexical diversity (Root TTR, Hapax Legomena, Yule's K), Zipfian rank fit, and n-gram repetition indexes.
 2. **Stylometric Fingerprinting**: Analyzes syntactic clause depth, punctuation entropy, function-word trajectories, and contraction density.
-3. **Neural Transformer Classification**: Evaluates sequence representations via a temperature-calibrated PyTorch projection head.
+3. **Neural Transformer Classification**: Fine-tuned RoBERTa AI-text classifier, plus zero-shot language-model perplexity analysis.
 4. **Semantic & Discourse Analysis**: Evaluates sentence-to-sentence cosine similarity, semantic smoothness corridor indexes, and circular conclusion redundancies.
 5. **AI Generation Patterns**: Scans for hallmark model n-grams (*"delve into"*, *"testament to"*, *"tapestry of"*), formulaic introductions, and neutral "both sides" hedging templates.
 6. **Discontinuity & Hybrid Slicing**: Calculates inter-passage Jensen-Shannon Divergence ($D_{\text{JS}}$) to identify and localize authorial transitions in mixed human-AI documents.
@@ -38,7 +38,7 @@ AEGIS is an enterprise-grade computational linguistics and text forensics engine
 
 Every completed job delivers a structured, verifiable Markdown audit report containing:
 - **Attribution Verdict**: `HUMAN_AUTHENTIC`, `AI_GENERATED`, `AI_ASSISTED_EDITED`, `HUMAN_PARAPHRASED_BY_AI`, `HYBRID_MIXED`, `INCONCLUSIVE`, or `INSUFFICIENT_EVIDENCE`.
-- **Calibrated AI Likelihood**: Posterior probability validated by an Expected Calibration Error (ECE) of 0.0638.
+- **Calibrated AI Likelihood**: Held-out AUROC 0.987, accuracy 95%, ECE 0.048 on a public MAGE/RAID sample (lower on the newest frontier models; see docs/FORENSIC_VALIDATION.md).
 - **95% Posterior Uncertainty Interval**: Range indicating statistical certainty.
 - **Passage-Level Heatmap Matrix**: Exact character boundaries and localized likelihoods.
 - **Analytical Layer Contributions**: Detailed breakdown of statistical, stylometric, and neural findings.

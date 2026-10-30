@@ -1,0 +1,38 @@
+{
+  "fitted_on": "2026-10-31",
+  "tiers": {
+    "full": {
+      "intercept": -3.0682,
+      "coefficients": {
+        "statistical_linguistics": 0.3791,
+        "stylometric_fingerprinting": 0.6459,
+        "neural_classifier": 0.7857,
+        "lm_perplexity": 0.0495,
+        "semantic_discourse": 1.4393,
+        "pattern_analysis": 0.3312,
+        "discontinuity_analysis": -0.1183
+      }
+    },
+    "no_classifier": {
+      "intercept": 1.3302,
+      "coefficients": {
+        "statistical_linguistics": -0.5805,
+        "stylometric_fingerprinting": 1.4631,
+        "lm_perplexity": 0.9642,
+        "semantic_discourse": 0.7049,
+        "pattern_analysis": 0.7938,
+        "discontinuity_analysis": -0.6636
+      }
+    },
+    "heuristic_only": {
+      "intercept": 0.6496,
+      "coefficients": {
+        "statistical_linguistics": 1.1012,
+        "stylometric_fingerprinting": 2.0224,
+        "semantic_discourse": 0.8608,
+        "pattern_analysis": 0.5282,
+        "discontinuity_analysis": -1.0951
+      }
+    }
+  }
+}

@@ -19,12 +19,7 @@ from app.api.models import (
 from app.core.preprocessor import ForensicPreprocessor
 from app.core.file_parser import DocumentParser, DocumentParserError
 from app.core.explanation import ForensicExplanationEngine
-from app.detectors.statistical import StatisticalLinguisticDetector
-from app.detectors.stylometric import StylometricFingerprintDetector
-from app.detectors.neural import NeuralClassifierDetector
-from app.detectors.semantic import SemanticDiscourseDetector
-from app.detectors.pattern_analyzer import AIPatternDetector
-from app.detectors.discontinuity import DiscontinuityDetector
+from app.detectors.registry import get_detectors
 from app.ensemble.fusion import ForensicEnsembleEngine, OperatingMode
 from app.evaluation.adversarial import AdversarialAttackSimulator
 from app.evaluation.benchmark import ForensicBenchmarkRunner
@@ -44,14 +39,7 @@ explanation_engine = ForensicExplanationEngine()
 ensemble_engine = ForensicEnsembleEngine()
 adversarial_simulator = AdversarialAttackSimulator()
 
-detectors = [
-    StatisticalLinguisticDetector(),
-    StylometricFingerprintDetector(),
-    NeuralClassifierDetector(),
-    SemanticDiscourseDetector(),
-    AIPatternDetector(),
-    DiscontinuityDetector()
-]
+detectors = get_detectors()
 
 
 def _execute_pipeline(

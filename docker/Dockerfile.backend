@@ -4,22 +4,25 @@ WORKDIR /app
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    AEGIS_DEVICE=cpu
+    AEGIS_DEVICE=cpu \
+    HF_HOME=/app/.hf-cache \
+    PORT=8000
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install python dependencies
+# CPU-only PyTorch keeps the image ~2 GB smaller than the default CUDA wheel
 COPY backend/requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu \
+    && pip install --no-cache-dir -r requirements.txt
 
-# Copy application source
+# Bake the detector weights into the image so the first request is not a cold download
+RUN python -c "from transformers import AutoTokenizer, AutoModelForSequenceClassification, AutoModelForCausalLM; \
+m='fakespot-ai/roberta-base-ai-text-detection-v1'; AutoTokenizer.from_pretrained(m); AutoModelForSequenceClassification.from_pretrained(m); \
+m='HuggingFaceTB/SmolLM2-135M'; AutoTokenizer.from_pretrained(m); AutoModelForCausalLM.from_pretrained(m)"
+
 COPY backend/ /app/
+
+# Writable job database + model cache for non-root runtimes (e.g. Hugging Face Spaces)
+RUN mkdir -p /app/app/data && chmod -R a+rwX /app/app/data /app/.hf-cache
 
 EXPOSE 8000
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
-
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT}"]

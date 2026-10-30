@@ -8,6 +8,7 @@ import time
 import base64
 import uuid
 import os
+import json
 from typing import Dict, Any, List, Optional
 from mcp.server.mcpserver import MCPServer
 
@@ -15,10 +16,7 @@ from app.core.preprocessor import ForensicPreprocessor
 from app.core.file_parser import DocumentParser, DocumentParserError
 from app.detectors.statistical import StatisticalLinguisticDetector
 from app.detectors.stylometric import StylometricFingerprintDetector
-from app.detectors.neural import NeuralClassifierDetector
-from app.detectors.semantic import SemanticDiscourseDetector
-from app.detectors.pattern_analyzer import AIPatternDetector
-from app.detectors.discontinuity import DiscontinuityDetector
+from app.detectors.registry import get_detectors
 from app.ensemble.fusion import ForensicEnsembleEngine, OperatingMode
 from app.core.explanation import ForensicExplanationEngine
 from app.evaluation.adversarial import AdversarialAttackSimulator
@@ -44,14 +42,16 @@ ensemble = ForensicEnsembleEngine()
 explanation_engine = ForensicExplanationEngine()
 adversarial_simulator = AdversarialAttackSimulator()
 
-detectors = [
-    StatisticalLinguisticDetector(),
-    StylometricFingerprintDetector(),
-    NeuralClassifierDetector(),
-    SemanticDiscourseDetector(),
-    AIPatternDetector(),
-    DiscontinuityDetector()
-]
+detectors = get_detectors()
+
+def _load_evaluation_summary() -> Dict[str, Any]:
+    path = os.path.join(config.benchmark_data_dir, "evaluation_summary.json")
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except (OSError, ValueError):
+        return {}
+
 
 # In-memory LRU cache for recent analysis reports
 ANALYSIS_CACHE: Dict[str, Dict[str, Any]] = {}
@@ -176,7 +176,13 @@ def analyze_document(
     start_time = time.perf_counter()
 
     if file_path:
-        # Prevent path traversal
+        # Reading server-side paths is only allowed for the local STDIO transport;
+        # over HTTP it would let any client read arbitrary files on the host.
+        if not config.mcp_allow_local_files:
+            return {
+                "error": "file_path is disabled on this server; send file_content_base64 and filename instead.",
+                "is_error": True
+            }
         norm_path = os.path.abspath(file_path)
         if not os.path.exists(norm_path):
             return {"error": f"File not found: {file_path}", "is_error": True}
@@ -186,7 +192,12 @@ def analyze_document(
     elif file_content_base64:
         if not filename:
             filename = "document.txt"
-        data = base64.b64decode(file_content_base64)
+        try:
+            data = base64.b64decode(file_content_base64, validate=True)
+        except (ValueError, TypeError):
+            return {"error": "file_content_base64 is not valid base64.", "is_error": True}
+        if len(data) > config.max_upload_size_bytes:
+            return {"error": "Document exceeds the maximum upload size.", "is_error": True}
     else:
         return {"error": "Either file_path or file_content_base64 must be provided.", "is_error": True}
 
@@ -225,7 +236,15 @@ def analyze_passages(
     Returns character-exact passage boundaries, localized AI likelihoods, and uncertainty intervals.
     """
     start_time = time.perf_counter()
-    doc = preprocessor.process(text)
+    window = max(40, min(int(passage_window_words), 1000))
+    stride = max(10, min(int(passage_stride_words), window))
+    passage_preprocessor = ForensicPreprocessor(
+        min_words_sufficient=config.length_limits.min_word_count_insufficient,
+        passage_window_words=window,
+        passage_stride_words=stride,
+        min_passage_words=config.length_limits.min_passage_words
+    )
+    doc = passage_preprocessor.process(text)
     outputs = [d.analyze(doc) for d in detectors]
     decision = ensemble.fuse(doc, outputs, mode=OperatingMode.BALANCED)
 
@@ -373,13 +392,7 @@ def get_detector_capabilities() -> Dict[str, Any]:
         "active_modules": [d.display_name for d in detectors],
         "operating_profiles": ["high_precision", "balanced", "exploratory"],
         "minimum_word_threshold": config.length_limits.min_word_count_insufficient,
-        "evaluation_status": {
-            "auroc": 1.0,
-            "auprc": 1.0,
-            "expected_calibration_error": 0.0638,
-            "brier_score": 0.1885,
-            "adversarial_drift": 0.0181
-        },
+        "evaluation_status": _load_evaluation_summary(),
         "epistemic_limitations": explanation_engine.KNOWN_LIMITATIONS
     }
 
@@ -398,7 +411,10 @@ def health_check() -> Dict[str, Any]:
         "version": config.version,
         "device": f"{config.device} ({device_name})",
         "cuda_available": cuda_avail,
-        "active_detectors_count": len(detectors),
+        "active_detectors_count": sum(1 for d in detectors if getattr(d, "available", True)),
+        "transformer_models_loaded": {
+            d.name: bool(getattr(d, "available", True)) for d in detectors if hasattr(d, "available")
+        },
         "database_connected": True,
         "cached_reports_count": len(ANALYSIS_CACHE)
     }
@@ -451,7 +467,8 @@ def resource_model_registry() -> str:
         "# AEGIS Active Model Registry\n"
         "- Module A: Statistical Linguistics Engine v1.0\n"
         "- Module B: Stylometric Fingerprinter v1.0\n"
-        "- Module C: Calibrated Neural Transformer Projection Head (PyTorch)\n"
+        f"- Module C: Fine-tuned RoBERTa classifier ({config.neural_model_name})\n"
+        f"- Module H: Language-model perplexity ({config.perplexity_model_name})\n"
         "- Module D: Semantic Discourse Analyzer (TF-IDF / Subword Vectorizer)\n"
         "- Module E: AI Rhetorical Pattern Matcher v1.0\n"
         "- Module F: Sliding-Window Discontinuity Detector v1.0\n"
@@ -462,15 +479,25 @@ def resource_model_registry() -> str:
 @mcp_server.resource("aegis://evaluation-summary")
 def resource_evaluation_summary() -> str:
     """Returns empirical benchmark evaluation summary."""
-    return (
-        "# AEGIS Scientific Validation Summary\n"
-        "- AUROC: 1.000\n"
-        "- AUPRC: 1.000\n"
-        "- Expected Calibration Error (ECE): 0.0638 (6.38%)\n"
-        "- Brier Score: 0.1885\n"
-        "- Mean Adversarial Degradation Drift: 0.0181 (1.81%)\n"
-        "- Evaluated against GPT-4o, Claude 3.5, Gemini 1.5, Llama 3, Mistral, and Diverse Human Corpora."
-    )
+    summary = _load_evaluation_summary()
+    if not summary:
+        return "# AEGIS Scientific Validation Summary\nNo evaluation summary is available on this server."
+    lines = [
+        "# AEGIS Scientific Validation Summary",
+        f"Evaluated on: {summary.get('evaluated_on')}",
+        f"Dataset: {summary.get('dataset')}",
+        f"Held-out test set: {summary.get('n_test')} texts "
+        f"({summary.get('n_test_ai')} AI / {summary.get('n_test_human')} human)",
+        "",
+    ]
+    for tier, m in summary.get("tiers", {}).items():
+        lines.append(
+            f"- {tier}: AUROC {m['auroc']}, accuracy {m['accuracy_at_0_5']}, "
+            f"FPR {m['false_positive_rate_at_0_5']}, Brier {m['brier_score']}, "
+            f"ECE {m['expected_calibration_error']}"
+        )
+    lines += ["", "Caveats:"] + [f"- {c}" for c in summary.get("caveats", [])]
+    return "\n".join(lines)
 
 
 # =====================================================================

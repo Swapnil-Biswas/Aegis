@@ -51,7 +51,7 @@ Endpoint: `http://localhost:8000/mcp` (or `https://your-domain.com/mcp`).
 | Tool Name | Parameters | Description |
 | :--- | :--- | :--- |
 | `analyze_text` | `text` (required), `analysis_depth` (`quick`, `standard`, `comprehensive`), `include_passages`, `language`, `context` | Analyzes text through all 7 forensic analytical layers. |
-| `analyze_document` | `file_path`, `file_content_base64`, `filename`, `analysis_depth` | Extracts and inspects PDF, DOCX, TXT, or MD documents. |
+| `analyze_document` | `file_path` (STDIO only), `file_content_base64`, `filename`, `analysis_depth` | Extracts and inspects PDF, DOCX, TXT, or MD documents. `file_path` is disabled over HTTP unless `AEGIS_MCP_ALLOW_LOCAL_FILES=1`. |
 | `analyze_passages` | `text`, `passage_window_words` (default 120), `passage_stride_words` (default 50) | Decomposes text into overlapping sliding-window passages for hybrid detection. |
 | `compare_text_samples`| `sample_a`, `sample_b` | Evaluates stylometric and statistical divergence between two texts. |
 | `get_analysis_report`| `analysis_id` | Retrieves a cached report or historical job by ID. |
@@ -66,7 +66,7 @@ Endpoint: `http://localhost:8000/mcp` (or `https://your-domain.com/mcp`).
 - `aegis://methodology`: Mathematical formulations for perplexity, burstiness, Shannon entropy, Yule's K, and Zipf's Law.
 - `aegis://limitations`: Documented epistemic boundaries, ESL considerations, and minimum word count rules.
 - `aegis://model-registry`: List of active detection modules and transformer model heads.
-- `aegis://evaluation-summary`: Live benchmark metrics (AUROC 1.0, ECE 0.0638, Brier 0.1885).
+- `aegis://evaluation-summary`: Measured held-out metrics per module-availability tier, with caveats.
 
 ---
 

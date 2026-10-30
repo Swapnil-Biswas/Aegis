@@ -11,7 +11,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6.svg)](https://www.typescriptlang.org/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-green.svg)](LICENSE)
 
-AEGIS is an enterprise-grade forensic analysis engine engineered to detect, attribute, and decompose AI-generated, human-written, and hybrid/mixed content. Rather than relying on a single classifier or uncalibrated perplexity heuristic, AEGIS evaluates text through **seven independent analytical layers**, calibrated Bayesian ensemble fusion, and semantic sliding-window passage segmentation.
+AEGIS is an enterprise-grade forensic analysis engine engineered to detect, attribute, and decompose AI-generated, human-written, and hybrid/mixed content. Rather than relying on a single classifier or uncalibrated perplexity heuristic, AEGIS evaluates text through **seven independent analytical layers**, a logistic stacking ensemble fitted on labelled data, and semantic sliding-window passage segmentation.
 
 AEGIS supports direct REST interaction, an interactive React frontend, full **Model Context Protocol (MCP)** integration for Claude Desktop / Cursor, and native compliance with the **HireCrew Marketplace** (`seller-hosted-api-v1`).
 
@@ -22,7 +22,8 @@ AEGIS supports direct REST interaction, an interactive React frontend, full **Mo
 - **Multi-Layer Forensic Architecture**:
   - **Module A: Statistical Linguistics**: Perplexity proxy, sentence burstiness ($B = \sigma / \mu$), Shannon entropy, length-normalized lexical diversity (Root TTR, Hapax Legomena, Yule's Characteristic K), Zipfian rank fit, and n-gram repetition indexes.
   - **Module B: Stylometric Fingerprinting**: Syntactic clause complexity, function word trajectories, punctuation entropy, sentence-opening diversity, and contraction density.
-  - **Module C: Neural Classifier Engine**: High-dimensional transformer latent sequence projections with temperature-scaled posterior outputs.
+  - **Module C: Neural Classifier Engine**: Fine-tuned RoBERTa AI-text classifier (`fakespot-ai/roberta-base-ai-text-detection-v1`) applied over 512-token windows.
+  - **Module H: Language-Model Perplexity**: Zero-shot token likelihood and entropy under `HuggingFaceTB/SmolLM2-135M`.
   - **Module D: Semantic & Discourse Analysis**: Sentence-to-sentence cosine similarity, semantic smoothness corridor index, and tautological conclusion redundancy checks.
   - **Module E: AI Generation Patterns**: Scans for model hallmark n-grams (*"delve into"*, *"testament to"*, *"tapestry of"*), formulaic transitions, and neutral "both sides" hedging templates.
   - **Module F: Discontinuity & Hybrid Slicing**: Inter-passage Jensen-Shannon Divergence ($D_{\text{JS}}$) to detect and localize authorial transitions in mixed human-AI documents.
@@ -42,7 +43,7 @@ AEGIS supports direct REST interaction, an interactive React frontend, full **Mo
   - Supports both **Local STDIO Transport** and **Streamable HTTP / SSE Transport** mounted at `/mcp`.
 - **HireCrew Marketplace Seller Agent**:
   - Full adherence to `seller-hosted-api-v1` (`POST /jobs`, `GET /jobs/{jobId}`) with Bearer authentication and SQLite WAL persistence.
-  - Evaluated and verified against the HireCrew platform builder kit: **100% pass across all 5 benchmark cases** (`research-v1`) and `ready_for_private_submission`.
+  - Non-detection briefs (research questions, recommendations, etc.) receive an explicit scope notice instead of fabricated answers.
 
 ---
 
@@ -64,16 +65,19 @@ aegis/
 │   │   │   ├── base.py               # Abstract BaseDetector interface
 │   │   │   ├── statistical.py        # Module A: Perplexity, burstiness, entropy, Zipf, TTR, Yule's K
 │   │   │   ├── stylometric.py        # Module B: Clauses, function words, punctuation entropy, contractions
-│   │   │   ├── neural.py             # Module C: PyTorch neural sequence classifier
+│   │   │   ├── neural.py             # Module C: Fine-tuned RoBERTa AI-text classifier
+│   │   │   ├── perplexity.py         # Module H: Language-model perplexity (SmolLM2-135M)
+│   │   │   ├── registry.py           # Shared detector instances (weights loaded once)
 │   │   │   ├── semantic.py           # Module D: Discourse cohesion, semantic smoothness, redundancy
 │   │   │   ├── pattern_analyzer.py   # Module E: AI hallmark n-grams and boilerplate framing
 │   │   │   └── discontinuity.py      # Module F: Sliding-window JSD divergence & hybrid locator
 │   │   ├── ensemble/
-│   │   │   ├── fusion.py             # Bayesian stacking & missing module fallback
+│   │   │   ├── fusion.py             # Logistic stacking with fallback tiers for missing modules
 │   │   │   └── thresholds.py         # 3 operational profiles & 7 verdict categories
 │   │   ├── evaluation/
 │   │   │   ├── metrics.py            # AUROC, AUPRC, ECE, Brier, FPR, Specificity
-│   │   │   ├── benchmark.py          # Benchmark runner on multi-domain holdout sets
+│   │   │   ├── benchmark.py          # Runner for the small curated sample set
+│   │   │   ├── fit_fusion.py         # Fits fusion weights + measures held-out metrics on public data
 │   │   │   └── adversarial.py        # Module G: Perturbation generators & drift calculators
 │   │   ├── db/
 │   │   │   └── jobs.py               # SQLite WAL job persistence & idempotency engine
@@ -86,7 +90,9 @@ aegis/
 │   │   │   └── server.py             # Official MCP SDK (v2.3.0) tools, resources & prompts
 │   │   ├── data/
 │   │   │   ├── curated_benchmarks.json  # Multi-genre, multi-model evaluation corpus
-│   │   │   └── hirecrew_benchmark_outputs.json # Pre-computed HireCrew research-v1 outputs
+│   │   │   ├── fusion_weights.json      # Fitted stacking coefficients
+│   │   │   ├── evaluation_summary.json  # Measured held-out metrics (served via MCP)
+│   │   │   └── hirecrew_benchmark_outputs.json # Local research-v1 run outputs (scope notices)
 │   │   ├── config.py                 # Configuration, operating limits & auth secrets
 │   │   └── main.py                   # FastAPI initialization & /mcp SSE mount
 │   ├── tests/
@@ -218,13 +224,7 @@ AEGIS operates as an independent seller-hosted agent on HireCrew (`https://hirec
    ```
    Returns `status: "delivered"` with structured report markdown and authoritative sources cited.
 
-3. **Validation & Benchmark Status**:
-   - `source-grounded-comparison`: **STRUCTURAL PASS** (0 findings)
-   - `time-sensitive-fact-check`: **STRUCTURAL PASS** (0 findings)
-   - `ambiguous-request`: **STRUCTURAL PASS** (0 findings)
-   - `sparse-evidence`: **STRUCTURAL PASS** (0 findings)
-   - `untrusted-page-instruction`: **STRUCTURAL PASS** (0 findings)
-   - Deployment Manifest: `ready_for_private_submission`
+3. **Scope**: AEGIS only performs AI-authorship analysis. HireCrew's research-v1 benchmark briefs (web research, fact-checks, recommendations) are answered with an honest scope notice rather than canned or fabricated research.
 
 For full details, review [`docs/HIRECREW_INTEGRATION.md`](docs/HIRECREW_INTEGRATION.md) and [`hirecrew_manifest.json`](hirecrew_manifest.json).
 
@@ -232,7 +232,7 @@ For full details, review [`docs/HIRECREW_INTEGRATION.md`](docs/HIRECREW_INTEGRAT
 
 ## Running Verification & Tests
 
-### Complete Backend Test Suite (27 Tests)
+### Complete Backend Test Suite
 ```bash
 cd aegis/backend
 python -m unittest discover tests
@@ -256,6 +256,6 @@ npm run build
 
 1. **Probabilistic Nature**: All scores represent calibrated statistical likelihoods ($p \in [0, 1]$), never absolute claims of authorship.
 2. **Never Fabricate Evidence**: Every finding maps strictly to calculated empirical features and statistical distributions.
-3. **No Uncalibrated Scores**: Neural and Bayesian ensemble outputs undergo temperature and isotonic Platt scaling (Expected Calibration Error $< 0.10$).
+3. **Measured, Not Asserted**: Fusion weights are fitted on public labelled data and evaluated on a held-out split (AUROC 0.987, ECE 0.048; see [`docs/FORENSIC_VALIDATION.md`](docs/FORENSIC_VALIDATION.md) for caveats and out-of-distribution results).
 4. **Epistemic Humility**: Mandatory refusal (`INSUFFICIENT_EVIDENCE`) for texts $< 60$ words and explicit `INCONCLUSIVE` output during inter-module discordance.
 5. **Mandatory Human-in-the-Loop**: Forensic outputs serve as advisory evidence to aid human professional judgment.

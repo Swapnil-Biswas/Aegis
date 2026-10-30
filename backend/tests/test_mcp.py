@@ -45,7 +45,9 @@ class TestAegisMcpServer(unittest.TestCase):
         self.assertGreaterEqual(len(res["active_modules"]), 6)
         self.assertEqual(res["minimum_word_threshold"], 60)
         self.assertIn("evaluation_status", res)
-        self.assertEqual(res["evaluation_status"]["auroc"], 1.0)
+        full = res["evaluation_status"]["tiers"]["full"]
+        self.assertGreater(full["auroc"], 0.9)
+        self.assertLessEqual(full["auroc"], 1.0)
 
     def test_analyze_text_insufficient_evidence(self):
         """Rule 7: Returns INSUFFICIENT_EVIDENCE on short inputs (<60 words)."""
@@ -140,6 +142,35 @@ class TestAegisMcpServer(unittest.TestCase):
 
         p5 = prompt_research_evaluation_review()
         self.assertIn("calibration", p5[0]["content"])
+
+    def test_analyze_document_rejects_server_paths_over_http(self):
+        """file_path must not allow remote clients to read arbitrary server files."""
+        from app.config import config
+        from app.mcp.server import analyze_document
+        previous = config.mcp_allow_local_files
+        config.mcp_allow_local_files = False
+        try:
+            res = analyze_document(file_path=os.path.abspath(__file__))
+        finally:
+            config.mcp_allow_local_files = previous
+        self.assertTrue(res.get("is_error"))
+        self.assertIn("disabled", res["error"])
+
+
+class TestFusionFallback(unittest.TestCase):
+    def test_missing_transformer_modules_use_fallback_tier(self):
+        from app.core.preprocessor import ForensicPreprocessor
+        from app.detectors.registry import get_detectors
+        from app.ensemble.fusion import ForensicEnsembleEngine
+        text = ("I went to the market on Saturday and the place was packed, so I grabbed some apples, "
+                "argued with the cheese guy about prices, and left with way more bread than I needed. ") * 4
+        doc = ForensicPreprocessor().process(text)
+        outputs = [d.analyze(doc) for d in get_detectors()
+                   if d.name not in ("neural_classifier", "lm_perplexity")]
+        decision = ForensicEnsembleEngine().fuse(doc, outputs)
+        self.assertTrue(any("heuristic_only" in n for n in decision.forensic_notes))
+        self.assertGreater(decision.calibrated_ai_likelihood, 0.0)
+        self.assertLess(decision.calibrated_ai_likelihood, 1.0)
 
 
 if __name__ == "__main__":
