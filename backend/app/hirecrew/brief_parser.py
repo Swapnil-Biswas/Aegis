@@ -57,3 +57,4 @@ class BriefParser:
             "mode": mode,
             "raw_brief": cleaned
         }
+

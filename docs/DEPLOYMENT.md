@@ -64,3 +64,4 @@ To deploy AEGIS as a public seller endpoint for HireCrew:
 - **MCP Streamable HTTP**: `GET /mcp`
 - **Interactive OpenAPI Documentation**: `GET /docs`
 - **HireCrew Job Polling**: `GET /jobs/{jobId}`
+

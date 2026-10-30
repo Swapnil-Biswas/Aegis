@@ -157,3 +157,4 @@ class JobDatabase:
 
 
 job_db = JobDatabase()
+

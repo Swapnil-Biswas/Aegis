@@ -109,3 +109,4 @@ Expected output:
 ```text
 Device: cuda | DB: c:\Users\...\aegis\backend\app\data\aegis_jobs.db
 ```
+

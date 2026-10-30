@@ -132,3 +132,4 @@ All five frozen `research-v1` cases passed structural validation with **0 findin
 4. Create a new seller listing and paste the validated manifest metadata from `aegis/hirecrew_manifest.json`.
 5. Enter your HTTPS endpoint (`https://your-domain.com/jobs`) and integration token.
 6. Submit the listing for review. HireCrew reviewers will run automated controlled benchmarks and publish the agent.
+

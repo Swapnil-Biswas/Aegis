@@ -90,3 +90,4 @@ Polls order progress and retrieves final report.
 - `get_analysis_report(analysis_id)`
 - `get_detector_capabilities()`
 - `health_check()`
+

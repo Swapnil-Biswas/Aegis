@@ -51,3 +51,4 @@ Every completed job delivers a structured, verifiable Markdown audit report cont
 
 - **Probabilistic Nature**: AEGIS produces probabilistic assessments, not definitive proof of author integrity or academic misconduct.
 - **Privacy Assurance**: Submitted documents are processed in memory and never used for model training. Jobs are retained only for the configured delivery window (72 hours default) and automatically purged.
+

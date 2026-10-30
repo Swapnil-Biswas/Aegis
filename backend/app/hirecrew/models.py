@@ -28,3 +28,4 @@ class HireCrewJobPollResponse(BaseModel):
     report: Optional[str] = None
     sources: Optional[List[SourceItem]] = None
     error: Optional[str] = None
+

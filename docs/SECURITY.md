@@ -92,3 +92,4 @@ A primary vulnerability in autonomous agents is *Indirect Prompt Injection*, whe
 To report security vulnerabilities in AEGIS:
 - Email: `security@aegis-forensics.local` (or repository maintainers)
 - Please allow 48 hours for acknowledgment before any coordinated public disclosure.
+
