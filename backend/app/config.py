@@ -66,6 +66,21 @@ class AegisConfig(BaseModel):
     # Data & Model paths
     model_cache_dir: str = os.path.join(os.path.dirname(__file__), "data", "models")
     benchmark_data_dir: str = os.path.join(os.path.dirname(__file__), "data")
+    database_path: str = os.getenv(
+        "AEGIS_DB_PATH",
+        os.path.join(os.path.dirname(__file__), "data", "aegis_jobs.db")
+    )
+
+    # HireCrew Seller API Settings
+    hirecrew_seller_token: str = os.getenv("HIRECREW_SELLER_TOKEN", "aegis-hirecrew-seller-token-secret")
+    hirecrew_max_brief_length: int = 50000
+    hirecrew_job_timeout_seconds: int = 300
+    hirecrew_job_retention_hours: int = 72
+
+    # MCP Server Settings
+    mcp_auth_token: Optional[str] = os.getenv("AEGIS_MCP_TOKEN", None)
+    mcp_server_name: str = "aegis-forensics-mcp"
+    mcp_server_version: str = "1.0.0"
 
 
 config = AegisConfig()

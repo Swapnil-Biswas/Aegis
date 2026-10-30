@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "aegis-forensics": {
+      "command": "python",
+      "args": [
+        "c:/Users/swapn/OneDrive/Desktop/agent/aegis/backend/run_mcp_stdio.py"
+      ],
+      "env": {
+        "AEGIS_DEVICE": "auto",
+        "PYTHONUNBUFFERED": "1"
+      }
+    }
+  }
+}

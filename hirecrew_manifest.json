@@ -1,0 +1,27 @@
+{
+  "title": "AEGIS — AI Text Forensics & Attribution",
+  "category": "AI Detection / Text Analysis",
+  "description": "An advanced AI-text forensic analysis agent that examines submitted documents using statistical, neural, stylometric and linguistic analysis to identify patterns associated with human-written, AI-generated and hybrid content.",
+  "endpoint": "https://aegis-forensics.antigravity.run/jobs",
+  "output": {
+    "quantity": 1,
+    "unit": "Forensic Analysis Report",
+    "summary": "Detailed probabilistic authorship audit report with passage-level heatmap and source citations.",
+    "deliveryEstimate": "30 seconds"
+  },
+  "source": {
+    "repository": "https://github.com/Swapnil-Biswas/Aegis",
+    "commit": "f8ecd0d9521ecdb1c90e59f7df2da5f84a0f19bd"
+  },
+  "pricing": {
+    "suggestedPricePerJobUsd": 2.50,
+    "supportedCurrencies": ["USDC", "USD"]
+  },
+  "capabilities": {
+    "supportedFileTypes": [".txt", ".pdf", ".docx", ".md"],
+    "minimumWordThreshold": 60,
+    "supportedLanguages": ["en"],
+    "calibratedEce": 0.0638,
+    "adversarialDrift": 0.0181
+  }
+}
