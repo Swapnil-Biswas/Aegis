@@ -16,7 +16,6 @@ AEGIS is an enterprise-grade forensic analysis engine engineered to detect, attr
 AEGIS supports direct REST interaction, an interactive React frontend, full **Model Context Protocol (MCP)** integration for Claude Desktop / Cursor, and native compliance with the **HireCrew Marketplace** (`seller-hosted-api-v1`).
 
 ---
-
 ## Key Capabilities
 
 - **Multi-Layer Forensic Architecture**:
